@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\ProgramStatus;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -87,5 +88,27 @@ class WorkoutProgram extends Model
     public function exercises(): HasMany
     {
         return $this->hasMany(WorkoutProgramExercise::class)->orderBy('sort_order');
+    }
+
+    /**
+     * Scope to active programs only.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeActive(Builder $query): Builder
+    {
+        return $query->where('status', ProgramStatus::Active->value);
+    }
+
+    /**
+     * Scope to completed programs only.
+     *
+     * @param  Builder<$this>  $query
+     * @return Builder<$this>
+     */
+    public function scopeCompleted(Builder $query): Builder
+    {
+        return $query->where('status', ProgramStatus::Completed->value);
     }
 }

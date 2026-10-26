@@ -140,6 +140,6 @@ class Member extends Model
      */
     protected static function relationsToCascade(): array
     {
-        return ['subscriptions', 'trainingSessions', 'workoutPrograms'];
+        return ['subscriptions'];
     }
 }

@@ -71,7 +71,7 @@ class TrainerCapacityService
     /**
      * Get workload metrics for a trainer.
      *
-     * @return array{active_clients: int, max_clients: int, utilization_percentage: float}
+     * @return array{active_clients: int, max_clients: int, available_slots: int, utilization_percentage: float, is_accepting_clients: bool}
      */
     public function getWorkload(User $trainer): array
     {
@@ -87,7 +87,9 @@ class TrainerCapacityService
         return [
             'active_clients' => $active,
             'max_clients' => $max,
+            'available_slots' => max(0, $max - $active),
             'utilization_percentage' => min($utilization, 100.0),
+            'is_accepting_clients' => $profile ? $profile->is_accepting_clients : true,
         ];
     }
 }

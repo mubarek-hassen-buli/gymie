@@ -35,8 +35,8 @@ class SessionSchedulingService
             // 1. Verify Member has an active subscription if subscription is enforced
             $activeSubscription = $subscription ?? $member->subscriptions()
                 ->where('status', 'ongoing')
-                ->where('start_date', '<=', $scheduledAt->toDateString())
-                ->where('end_date', '>=', $scheduledAt->toDateString())
+                ->whereDate('start_date', '<=', $scheduledAt)
+                ->whereDate('end_date', '>=', $scheduledAt)
                 ->latest('start_date')
                 ->first();
 
@@ -52,15 +52,18 @@ class SessionSchedulingService
                 ]);
             }
 
+            $driver = DB::connection()->getDriverName();
+            $overlapExpression = $this->overlapExpression($driver);
+
             // 2. Check for Trainer schedule conflict (prevent double-booking)
             $trainerConflict = TrainingSession::query()
                 ->where('trainer_id', $trainer->id)
                 ->where('status', SessionStatus::Scheduled->value)
-                ->where(function ($query) use ($scheduledAt, $endAt) {
+                ->where(function ($query) use ($scheduledAt, $endAt, $overlapExpression) {
                     $query->whereBetween('scheduled_at', [$scheduledAt, $endAt->copy()->subMinute()])
-                        ->orWhere(function ($q) use ($scheduledAt) {
+                        ->orWhere(function ($q) use ($scheduledAt, $overlapExpression) {
                             $q->where('scheduled_at', '<=', $scheduledAt)
-                                ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$scheduledAt->toDateTimeString()]);
+                                ->whereRaw($overlapExpression, [$scheduledAt->toDateTimeString()]);
                         });
                 })
                 ->lockForUpdate()
@@ -78,11 +81,11 @@ class SessionSchedulingService
             $memberConflict = TrainingSession::query()
                 ->where('member_id', $member->id)
                 ->where('status', SessionStatus::Scheduled->value)
-                ->where(function ($query) use ($scheduledAt, $endAt) {
+                ->where(function ($query) use ($scheduledAt, $endAt, $overlapExpression) {
                     $query->whereBetween('scheduled_at', [$scheduledAt, $endAt->copy()->subMinute()])
-                        ->orWhere(function ($q) use ($scheduledAt) {
+                        ->orWhere(function ($q) use ($scheduledAt, $overlapExpression) {
                             $q->where('scheduled_at', '<=', $scheduledAt)
-                                ->whereRaw('DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?', [$scheduledAt->toDateTimeString()]);
+                                ->whereRaw($overlapExpression, [$scheduledAt->toDateTimeString()]);
                         });
                 })
                 ->lockForUpdate()
@@ -177,8 +180,8 @@ class SessionSchedulingService
             ->get();
 
         $total = $sessions->count();
-        $completed = $sessions->where('status', SessionStatus::Completed)->count();
-        $absent = $sessions->where('status', SessionStatus::MemberAbsent)->count();
+        $completed = $sessions->filter(fn ($s): bool => $s->status === SessionStatus::Completed || $s->status?->value === SessionStatus::Completed->value)->count();
+        $absent = $sessions->filter(fn ($s): bool => $s->status === SessionStatus::MemberAbsent || $s->status?->value === SessionStatus::MemberAbsent->value)->count();
 
         $rate = $total > 0 ? round(($completed / $total) * 100, 1) : 100.0;
 
@@ -188,5 +191,17 @@ class SessionSchedulingService
             'absent' => $absent,
             'adherence_percentage' => $rate,
         ];
+    }
+
+    /**
+     * Database-agnostic expression checking if scheduled_at + duration_minutes > target time.
+     */
+    private function overlapExpression(string $driver): string
+    {
+        return match ($driver) {
+            'sqlite' => "datetime(scheduled_at, '+' || duration_minutes || ' minute') > ?",
+            'pgsql' => "(scheduled_at + (duration_minutes || ' minutes')::interval) > ?",
+            default => 'DATE_ADD(scheduled_at, INTERVAL duration_minutes MINUTE) > ?',
+        };
     }
 }

@@ -33,7 +33,10 @@ it('only allows required classes to be restored from cache', function (): void {
     $store->put('countries', collect([['name' => 'India']]), 60);
     $store->put('unexpected-object', new stdClass, 60);
 
-    expect(config('cache.serializable_classes'))->toBe([Collection::class])
+    expect(config('cache.serializable_classes'))->toBe([
+        Collection::class,
+        \Illuminate\Database\Eloquent\Collection::class,
+    ])
         ->and($store->get('countries'))->toBeInstanceOf(Collection::class)
         ->and($store->get('unexpected-object'))->toBeInstanceOf(__PHP_Incomplete_Class::class)
         ->and(config('session.serialization'))->toBe('json');
