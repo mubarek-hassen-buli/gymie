@@ -40,6 +40,7 @@ class Subscription extends Model
         'renewed_from_subscription_id',
         'member_id',
         'plan_id',
+        'trainer_id',
         'start_date',
         'end_date',
         'status',
@@ -103,12 +104,41 @@ class Subscription extends Model
 
     /**
      * The plan this subscription is for.
-     */
-    /**
+     *
      * @return BelongsTo<Plan, $this>
      */
     public function plan(): BelongsTo
     {
         return $this->belongsTo(Plan::class);
+    }
+
+    /**
+     * The assigned personal trainer for this subscription, if any.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function trainer(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'trainer_id');
+    }
+
+    /**
+     * The training sessions scheduled under this subscription.
+     *
+     * @return HasMany<TrainingSession, $this>
+     */
+    public function trainingSessions(): HasMany
+    {
+        return $this->hasMany(TrainingSession::class);
+    }
+
+    /**
+     * The workout programs assigned under this subscription.
+     *
+     * @return HasMany<WorkoutProgram, $this>
+     */
+    public function workoutPrograms(): HasMany
+    {
+        return $this->hasMany(WorkoutProgram::class);
     }
 }

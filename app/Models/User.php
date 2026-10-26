@@ -84,6 +84,54 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     }
 
     /**
+     * Get the trainer profile associated with the user.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne<TrainerProfile, $this>
+     */
+    public function trainerProfile(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(TrainerProfile::class);
+    }
+
+    /**
+     * Get the training sessions conducted by this trainer.
+     *
+     * @return HasMany<TrainingSession, $this>
+     */
+    public function trainingSessions(): HasMany
+    {
+        return $this->hasMany(TrainingSession::class, 'trainer_id');
+    }
+
+    /**
+     * Get subscriptions assigned to this trainer.
+     *
+     * @return HasMany<Subscription, $this>
+     */
+    public function assignedSubscriptions(): HasMany
+    {
+        return $this->hasMany(Subscription::class, 'trainer_id');
+    }
+
+    /**
+     * Get workout programs authored by this trainer.
+     *
+     * @return HasMany<WorkoutProgram, $this>
+     */
+    public function workoutPrograms(): HasMany
+    {
+        return $this->hasMany(WorkoutProgram::class, 'trainer_id');
+    }
+
+    /**
+     * Determine if this user is a trainer.
+     */
+    public function isTrainer(): bool
+    {
+        return $this->hasRole('trainer') || $this->trainerProfile()->exists();
+    }
+
+    /**
      * Get the URL for the user's Filament avatar.
      *
      * @return string|null The URL of the user's avatar or null if not set.

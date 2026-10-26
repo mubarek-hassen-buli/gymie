@@ -79,13 +79,45 @@ class Member extends Model
 
     /**
      * Get the subscriptions for the member.
-     */
-    /**
+     *
      * @return HasMany<Subscription, $this>
      */
     public function subscriptions(): HasMany
     {
         return $this->hasMany(Subscription::class);
+    }
+
+    /**
+     * Get the personal training sessions for the member.
+     *
+     * @return HasMany<TrainingSession, $this>
+     */
+    public function trainingSessions(): HasMany
+    {
+        return $this->hasMany(TrainingSession::class);
+    }
+
+    /**
+     * Get the workout programs assigned to the member.
+     *
+     * @return HasMany<WorkoutProgram, $this>
+     */
+    public function workoutPrograms(): HasMany
+    {
+        return $this->hasMany(WorkoutProgram::class);
+    }
+
+    /**
+     * Get the currently active assigned personal trainer, if any.
+     */
+    public function activeTrainer(): ?User
+    {
+        return $this->subscriptions()
+            ->where('status', 'ongoing')
+            ->whereNotNull('trainer_id')
+            ->latest('start_date')
+            ->first()
+            ?->trainer;
     }
 
     /**
@@ -108,6 +140,6 @@ class Member extends Model
      */
     protected static function relationsToCascade(): array
     {
-        return ['subscriptions'];
+        return ['subscriptions', 'trainingSessions', 'workoutPrograms'];
     }
 }
