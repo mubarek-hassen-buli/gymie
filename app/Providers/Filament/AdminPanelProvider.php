@@ -5,6 +5,7 @@ namespace App\Providers\Filament;
 use App\Filament\Pages\Dashboard;
 use App\Filament\Pages\Settings;
 use App\Filament\Resources\Enquiries\EnquiryResource;
+use App\Filament\Resources\Exercises\ExerciseResource;
 use App\Filament\Resources\Expenses\ExpenseResource;
 use App\Filament\Resources\FollowUps\FollowUpResource;
 use App\Filament\Resources\Invoices\InvoiceResource;
@@ -12,7 +13,9 @@ use App\Filament\Resources\Members\MemberResource;
 use App\Filament\Resources\Plans\PlanResource;
 use App\Filament\Resources\Services\ServiceResource;
 use App\Filament\Resources\Subscriptions\SubscriptionResource;
+use App\Filament\Resources\TrainingSessions\TrainingSessionResource;
 use App\Filament\Resources\Users\UserResource;
+use App\Filament\Resources\WorkoutPrograms\WorkoutProgramResource;
 use App\Http\Middleware\SetAppLocale;
 use BezhanSalleh\FilamentShield\FilamentShieldPlugin;
 use BezhanSalleh\FilamentShield\Resources\Roles\RoleResource;
@@ -136,6 +139,12 @@ class AdminPanelProvider extends PanelProvider
             ...SubscriptionResource::getNavigationItems(),
         ];
 
+        $training = [
+            ...TrainingSessionResource::getNavigationItems(),
+            ...WorkoutProgramResource::getNavigationItems(),
+            ...ExerciseResource::getNavigationItems(),
+        ];
+
         return $builder
             ->groups([
                 NavigationGroup::make(__('app.navigation.groups.sales'))
@@ -146,6 +155,11 @@ class AdminPanelProvider extends PanelProvider
                 NavigationGroup::make(__('app.navigation.groups.memberships'))
                     ->icon('heroicon-o-user-group')
                     ->items($memberships)
+                    ->collapsed(false),
+
+                NavigationGroup::make(__('app.navigation.groups.training'))
+                    ->icon('heroicon-o-academic-cap')
+                    ->items($training)
                     ->collapsed(false),
 
                 NavigationGroup::make(__('app.navigation.groups.billing'))

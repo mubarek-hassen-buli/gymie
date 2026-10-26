@@ -43,10 +43,10 @@ class SubscriptionTable
                     ->toggleable(isToggledHiddenByDefault: true),
                 TextColumn::make('member.name')
                     ->label(__('app.fields.member'))
-                    ->description(fn ($record): string => $record->member->code),
+                    ->description(fn ($record): ?string => $record->member?->code),
                 TextColumn::make('plan.name')
                     ->label(__('app.fields.plan'))
-                    ->description(fn ($record): string => $record->plan->code),
+                    ->description(fn ($record): ?string => $record->plan?->code),
                 TextColumn::make('start_date')
                     ->label(__('app.fields.start_date'))
                     ->date(),

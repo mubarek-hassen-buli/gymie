@@ -48,7 +48,7 @@ class InvoiceTable
                     ->sortable(),
                 TextColumn::make('subscription.member.name')
                     ->label(__('app.fields.subscription'))
-                    ->description(fn ($record): string => $record->subscription->member->code),
+                    ->description(fn ($record): ?string => $record->subscription?->member?->code),
                 TextColumn::make('date')
                     ->label(__('app.fields.date'))
                     ->date()

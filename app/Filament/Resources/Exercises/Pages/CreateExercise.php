@@ -1,0 +1,29 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Filament\Resources\Exercises\Pages;
+
+use App\Filament\Resources\Exercises\ExerciseResource;
+use Filament\Resources\Pages\CreateRecord;
+
+class CreateExercise extends CreateRecord
+{
+    protected static string $resource = ExerciseResource::class;
+
+    protected static bool $canCreateAnother = true;
+
+    public function getTitle(): string
+    {
+        return __('app.actions.new', ['resource' => ExerciseResource::getModelLabel()]);
+    }
+
+    public function getBreadcrumbs(): array
+    {
+        return [
+            __('app.navigation.groups.training') => null,
+            ExerciseResource::getUrl('index') => ExerciseResource::getNavigationLabel(),
+            __('app.actions.new', ['resource' => ExerciseResource::getModelLabel()]),
+        ];
+    }
+}

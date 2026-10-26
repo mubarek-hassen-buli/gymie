@@ -128,7 +128,36 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
      */
     public function isTrainer(): bool
     {
-        return $this->hasRole('trainer') || $this->trainerProfile()->exists();
+        try {
+            if ($this->hasRole('trainer')) {
+                return true;
+            }
+        } catch (\Throwable) {
+            // Role may not exist yet in database
+        }
+
+        return $this->trainerProfile()->exists();
+    }
+
+    /**
+     * Get trainer options for select dropdowns and table filters.
+     *
+     * @return array<int, string>
+     */
+    public static function getTrainerOptions(): array
+    {
+        try {
+            if (\Spatie\Permission\Models\Role::query()->where('name', 'trainer')->exists()) {
+                $trainers = static::role('trainer')->pluck('name', 'id')->all();
+                if (! empty($trainers)) {
+                    return $trainers;
+                }
+            }
+        } catch (\Throwable) {
+            // Fall back gracefully if role is not configured
+        }
+
+        return static::query()->pluck('name', 'id')->all();
     }
 
     /**

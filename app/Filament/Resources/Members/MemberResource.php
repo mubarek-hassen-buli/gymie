@@ -7,6 +7,8 @@ use App\Filament\Resources\Members\Pages\EditMember;
 use App\Filament\Resources\Members\Pages\ListMembers;
 use App\Filament\Resources\Members\Pages\ViewMember;
 use App\Filament\Resources\Members\RelationManagers\SubscriptionsRelationManager;
+use App\Filament\Resources\Members\RelationManagers\TrainingSessionsRelationManager;
+use App\Filament\Resources\Members\RelationManagers\WorkoutProgramsRelationManager;
 use App\Filament\Resources\Members\Schemas\MemberForm;
 use App\Filament\Resources\Members\Schemas\MemberInfolist;
 use App\Filament\Resources\Members\Tables\MemberTable;
@@ -103,6 +105,8 @@ class MemberResource extends Resource
     {
         return [
             SubscriptionsRelationManager::class,
+            TrainingSessionsRelationManager::class,
+            WorkoutProgramsRelationManager::class,
         ];
     }
 

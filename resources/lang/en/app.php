@@ -85,6 +85,24 @@ return [
         'discount_with_rate' => 'Discount (:rate%)',
         'password' => 'Password',
         'password_confirmation' => 'Confirm password',
+        'muscle_group' => 'Muscle Group',
+        'equipment_type' => 'Equipment Type',
+        'instructions' => 'Instructions',
+        'video_url' => 'Video Demo URL',
+        'trainer' => 'Trainer',
+        'scheduled_at' => 'Scheduled At',
+        'duration_minutes' => 'Duration (Mins)',
+        'trainer_notes' => 'Trainer Notes',
+        'client_feedback' => 'Client Feedback',
+        'cancellation_reason' => 'Cancellation Reason',
+        'day_label' => 'Day / Routine',
+        'target_sets' => 'Sets',
+        'target_reps' => 'Reps',
+        'target_rpe' => 'Target RPE',
+        'rest_seconds' => 'Rest (Seconds)',
+        'weight_kg' => 'Weight (kg)',
+        'reps_completed' => 'Reps Completed',
+        'is_pr' => 'Personal Record (PR)',
     ],
     'placeholders' => [
         'na' => 'N/A',
@@ -184,6 +202,18 @@ return [
         'users' => [
             'singular' => 'User',
             'plural' => 'Users',
+        ],
+        'exercises' => [
+            'singular' => 'Exercise',
+            'plural' => 'Exercises',
+        ],
+        'workout_programs' => [
+            'singular' => 'Workout Program',
+            'plural' => 'Workout Programs',
+        ],
+        'training_sessions' => [
+            'singular' => 'Training Session',
+            'plural' => 'Training Sessions',
         ],
     ],
     'actions' => [
@@ -290,6 +320,7 @@ return [
             'memberships' => 'Memberships',
             'billing' => 'Billing',
             'administration' => 'Administration',
+            'training' => 'Coaching & Workouts',
         ],
     ],
     'dashboard' => [
