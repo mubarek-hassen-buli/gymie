@@ -9,6 +9,7 @@ use Filament\Models\Contracts\HasAvatar;
 use Filament\Panel;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -124,6 +125,40 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
     }
 
     /**
+     * Get the gym member profile associated with this user account, if any.
+     *
+     * @return HasOne<Member, $this>
+     */
+    public function member(): HasOne
+    {
+        return $this->hasOne(Member::class);
+    }
+
+    /**
+     * Determine if this user has the super admin role.
+     */
+    public function isSuperAdmin(): bool
+    {
+        try {
+            return $this->hasRole('super_admin');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
+     * Determine if this user has the front desk role.
+     */
+    public function isFrontDesk(): bool
+    {
+        try {
+            return $this->hasRole('front_desk');
+        } catch (\Throwable) {
+            return false;
+        }
+    }
+
+    /**
      * Determine if this user is a trainer.
      */
     public function isTrainer(): bool
@@ -137,6 +172,22 @@ class User extends Authenticatable implements FilamentUser, HasAvatar
         }
 
         return $this->trainerProfile()->exists();
+    }
+
+    /**
+     * Determine if this user is a gym member.
+     */
+    public function isMember(): bool
+    {
+        try {
+            if ($this->hasRole('member')) {
+                return true;
+            }
+        } catch (\Throwable) {
+            // Role may not exist yet in database
+        }
+
+        return $this->member()->exists();
     }
 
     /**

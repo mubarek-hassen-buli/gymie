@@ -12,11 +12,54 @@ class ShieldSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
-        $rolesWithPermissions = '[{"name":"super_admin","guard_name":"web","permissions":[]}]';
-        $directPermissions = '[]';
+        $rolesWithPermissions = [
+            [
+                'name' => 'super_admin',
+                'guard_name' => 'web',
+                'permissions' => [],
+            ],
+            [
+                'name' => 'front_desk',
+                'guard_name' => 'web',
+                'permissions' => [
+                    'ViewAny:Enquiry', 'View:Enquiry', 'Create:Enquiry', 'Update:Enquiry',
+                    'ViewAny:FollowUp', 'View:FollowUp', 'Create:FollowUp', 'Update:FollowUp',
+                    'ViewAny:Member', 'View:Member', 'Create:Member', 'Update:Member',
+                    'ViewAny:Subscription', 'View:Subscription', 'Create:Subscription', 'Update:Subscription',
+                    'ViewAny:Invoice', 'View:Invoice',
+                    'ViewAny:Plan', 'View:Plan',
+                    'ViewAny:Service', 'View:Service',
+                    'ViewAny:TrainingSession', 'View:TrainingSession', 'Create:TrainingSession', 'Update:TrainingSession',
+                    'ViewAny:Exercise', 'View:Exercise',
+                    'View:MembershipMetricsWidget',
+                    'View:MembershipOverviewSubscriptionsTableWidget',
+                    'View:ExpiringSoonSubscriptionsTableWidget',
+                ],
+            ],
+            [
+                'name' => 'trainer',
+                'guard_name' => 'web',
+                'permissions' => [
+                    'ViewAny:TrainingSession', 'View:TrainingSession', 'Create:TrainingSession', 'Update:TrainingSession',
+                    'ViewAny:WorkoutProgram', 'View:WorkoutProgram', 'Create:WorkoutProgram', 'Update:WorkoutProgram', 'Delete:WorkoutProgram',
+                    'ViewAny:Exercise', 'View:Exercise', 'Create:Exercise', 'Update:Exercise',
+                    'ViewAny:Member', 'View:Member',
+                ],
+            ],
+            [
+                'name' => 'member',
+                'guard_name' => 'web',
+                'permissions' => [
+                    'ViewAny:TrainingSession', 'View:TrainingSession',
+                    'ViewAny:WorkoutProgram', 'View:WorkoutProgram',
+                    'ViewAny:Exercise', 'View:Exercise',
+                    'ViewAny:Invoice', 'View:Invoice',
+                ],
+            ],
+        ];
 
-        static::makeRolesWithPermissions($rolesWithPermissions);
-        static::makeDirectPermissions($directPermissions);
+        static::makeRolesWithPermissions((string) json_encode($rolesWithPermissions));
+        static::makeDirectPermissions('[]');
 
         $this->command->info('Shield Seeding Completed.');
     }

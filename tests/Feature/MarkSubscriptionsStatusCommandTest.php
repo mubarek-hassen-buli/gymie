@@ -27,7 +27,7 @@ class MarkSubscriptionsStatusCommandTest extends TestCase
         ]);
 
         // Ensure the super_admin role exists for the test user
-        Role::create(['name' => 'super_admin']);
+        Role::firstOrCreate(['name' => 'super_admin', 'guard_name' => 'web']);
     }
 
     protected function tearDown(): void

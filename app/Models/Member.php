@@ -9,12 +9,14 @@ use Database\Factories\MemberFactory;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int|null $user_id
  * @property string|null $photo
  * @property string $code
  * @property string $name
@@ -32,6 +34,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $source
  * @property string|null $goal
  * @property Status|null $status
+ * @property-read User|null $user
  * @property-read Collection<int, Subscription> $subscriptions
  */
 class Member extends Model
@@ -45,6 +48,7 @@ class Member extends Model
      * @var list<string>
      */
     protected $fillable = [
+        'user_id',
         'photo',
         'code',
         'name',
@@ -72,9 +76,20 @@ class Member extends Model
     protected function casts(): array
     {
         return [
+            'user_id' => 'integer',
             'dob' => 'date',
             'status' => Status::class,
         ];
+    }
+
+    /**
+     * The login user account associated with this member, if any.
+     *
+     * @return BelongsTo<User, $this>
+     */
+    public function user(): BelongsTo
+    {
+        return $this->belongsTo(User::class);
     }
 
     /**
