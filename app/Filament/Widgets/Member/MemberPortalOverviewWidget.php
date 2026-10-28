@@ -20,6 +20,8 @@ class MemberPortalOverviewWidget extends StatsOverviewWidget
 {
     protected static ?int $sort = -50;
 
+    protected ?string $pollingInterval = '30s';
+
     protected int|string|array $columnSpan = 'full';
 
     /**

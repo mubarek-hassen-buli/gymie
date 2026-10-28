@@ -47,6 +47,7 @@ class RecentTransactionsTableWidget extends TableWidget
     public function table(Table $table): Table
     {
         return $table
+            ->poll('30s')
             ->paginated(false)
             ->heading(__('app.widgets.recent_transactions'))
             ->query(function (): Builder {

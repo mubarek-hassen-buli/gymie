@@ -164,6 +164,7 @@ BLADE,
         $today = CarbonImmutable::today(AppConfig::timezone())->toDateString();
 
         return $table
+            ->poll('30s')
             ->heading(null)
             ->header(fn (): HtmlString => $this->tableHeader())
             ->paginated(false)

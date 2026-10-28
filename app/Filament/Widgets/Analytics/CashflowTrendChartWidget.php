@@ -36,6 +36,8 @@ class CashflowTrendChartWidget extends ChartWidget
         return $user->isSuperAdmin();
     }
 
+    protected ?string $pollingInterval = null;
+
     protected ?string $maxHeight = '400px';
 
     public ?string $filter = '7days';

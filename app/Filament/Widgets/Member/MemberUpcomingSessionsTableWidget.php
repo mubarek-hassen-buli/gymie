@@ -34,6 +34,7 @@ class MemberUpcomingSessionsTableWidget extends TableWidget
             ->query($this->getTableQuery())
             ->heading('My Training Sessions')
             ->description('Your upcoming and recent coaching sessions.')
+            ->poll('30s')
             ->emptyStateHeading('No Coaching Sessions Yet')
             ->emptyStateDescription('You do not have any coaching sessions booked.')
             ->emptyStateIcon('heroicon-o-academic-cap')

@@ -19,6 +19,8 @@ class MembershipMetricsWidget extends StatsOverviewWidget
 
     protected static ?int $sort = -41;
 
+    protected ?string $pollingInterval = '30s';
+
     public static function canView(): bool
     {
         $user = auth()->user();

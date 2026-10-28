@@ -28,6 +28,8 @@ class TopPlansByCollectedBarChartWidget extends ChartWidget
         return $user->isSuperAdmin();
     }
 
+    protected ?string $pollingInterval = null;
+
     protected ?string $maxHeight = '320px';
 
     /**

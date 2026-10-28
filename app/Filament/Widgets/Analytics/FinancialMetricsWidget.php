@@ -20,6 +20,8 @@ class FinancialMetricsWidget extends StatsOverviewWidget
 
     protected static ?int $sort = -40;
 
+    protected ?string $pollingInterval = '30s';
+
     /**
      * @var int | string | array<string, int | null>
      */

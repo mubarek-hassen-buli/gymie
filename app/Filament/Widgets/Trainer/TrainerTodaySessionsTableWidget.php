@@ -38,6 +38,7 @@ class TrainerTodaySessionsTableWidget extends TableWidget
             ->query($this->getTableQuery())
             ->heading("Today's Coaching Schedule")
             ->description('Your scheduled personal training appointments for today.')
+            ->poll('30s')
             ->emptyStateHeading('No Sessions Scheduled For Today')
             ->emptyStateDescription('You have no client appointments booked for today.')
             ->emptyStateIcon('heroicon-o-calendar-days')

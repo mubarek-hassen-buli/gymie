@@ -74,6 +74,7 @@ class ExpiringSoonSubscriptionsTableWidget extends TableWidget
     public function table(Table $table): Table
     {
         return $table
+            ->poll('30s')
             ->heading(__('app.widgets.expiring_soon'))
             ->query(fn (): Builder => $this->getExpiringSoonQuery())
             ->columns([
