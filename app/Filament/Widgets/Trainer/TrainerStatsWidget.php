@@ -68,7 +68,7 @@ class TrainerStatsWidget extends StatsOverviewWidget
             ->count();
 
         // 4. Capacity & Workload
-        $workload = app(TrainerCapacityService::class)->getWorkload($user->id);
+        $workload = app(TrainerCapacityService::class)->getWorkload($user);
         $maxClients = $workload['max_clients'] > 0 ? $workload['max_clients'] : 15;
         $utilization = $workload['utilization_percentage'];
 

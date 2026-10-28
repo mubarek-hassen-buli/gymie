@@ -112,38 +112,57 @@ class AdminPanelProvider extends PanelProvider
     }
 
     /**
+     * Get navigation items for the given classes, attaching dynamic authorization visibility.
+     *
+     * @param  array<int, class-string>  $classes
+     * @return array<int, NavigationItem>
+     */
+    protected function getAuthorizedNavigationItems(array $classes): array
+    {
+        $items = [];
+
+        foreach ($classes as $class) {
+            foreach ($class::getNavigationItems() as $item) {
+                $items[] = $item->visible(fn (): bool => $class::canAccess());
+            }
+        }
+
+        return $items;
+    }
+
+    /**
      * Build grouped navigation for the admin panel.
      */
     protected function buildNavigation(NavigationBuilder $builder): NavigationBuilder
     {
-        $administration = [
-            ...Settings::getNavigationItems(),
-            ...UserResource::getNavigationItems(),
-            ...RoleResource::getNavigationItems(),
-        ];
+        $administration = $this->getAuthorizedNavigationItems([
+            Settings::class,
+            UserResource::class,
+            RoleResource::class,
+        ]);
 
-        $sales = [
-            ...EnquiryResource::getNavigationItems(),
-            ...FollowUpResource::getNavigationItems(),
-        ];
+        $sales = $this->getAuthorizedNavigationItems([
+            EnquiryResource::class,
+            FollowUpResource::class,
+        ]);
 
-        $billing = [
-            ...InvoiceResource::getNavigationItems(),
-            ...ExpenseResource::getNavigationItems(),
-        ];
+        $billing = $this->getAuthorizedNavigationItems([
+            InvoiceResource::class,
+            ExpenseResource::class,
+        ]);
 
-        $memberships = [
-            ...MemberResource::getNavigationItems(),
-            ...PlanResource::getNavigationItems(),
-            ...ServiceResource::getNavigationItems(),
-            ...SubscriptionResource::getNavigationItems(),
-        ];
+        $memberships = $this->getAuthorizedNavigationItems([
+            MemberResource::class,
+            PlanResource::class,
+            ServiceResource::class,
+            SubscriptionResource::class,
+        ]);
 
-        $training = [
-            ...TrainingSessionResource::getNavigationItems(),
-            ...WorkoutProgramResource::getNavigationItems(),
-            ...ExerciseResource::getNavigationItems(),
-        ];
+        $training = $this->getAuthorizedNavigationItems([
+            TrainingSessionResource::class,
+            WorkoutProgramResource::class,
+            ExerciseResource::class,
+        ]);
 
         return $builder
             ->groups([

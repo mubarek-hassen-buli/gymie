@@ -71,10 +71,13 @@ class TrainerCapacityService
     /**
      * Get workload metrics for a trainer.
      *
+     * @param  User|int  $trainer
      * @return array{active_clients: int, max_clients: int, available_slots: int, utilization_percentage: float, is_accepting_clients: bool}
      */
-    public function getWorkload(User $trainer): array
+    public function getWorkload(User|int $trainer): array
     {
+        $trainer = $trainer instanceof User ? $trainer : User::findOrFail($trainer);
+
         $profile = $trainer->trainerProfile;
         $max = $profile ? $profile->max_active_clients : 10;
         $active = $profile ? $profile->activeClientsCount() : $trainer->assignedSubscriptions()
