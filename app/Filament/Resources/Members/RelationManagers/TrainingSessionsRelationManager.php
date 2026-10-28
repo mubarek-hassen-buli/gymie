@@ -9,6 +9,7 @@ use Filament\Actions\CreateAction;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
 class TrainingSessionsRelationManager extends RelationManager
@@ -35,6 +36,12 @@ class TrainingSessionsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return TrainingSessionResource::table($table)
+            ->modifyQueryUsing(function (Builder $query): void {
+                $user = auth()->user();
+                if ($user && $user->isTrainer() && ! $user->isSuperAdmin() && ! $user->isFrontDesk()) {
+                    $query->where('trainer_id', $user->id);
+                }
+            })
             ->headerActions([
                 CreateAction::make()
                     ->icon('heroicon-s-plus')

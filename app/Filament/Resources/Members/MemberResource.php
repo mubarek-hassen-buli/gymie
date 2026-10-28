@@ -125,9 +125,36 @@ class MemberResource extends Resource
      */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+
+        $user = auth()->user();
+
+        if (! $user) {
+            return $query;
+        }
+
+        if ($user->isSuperAdmin() || $user->isFrontDesk()) {
+            return $query;
+        }
+
+        if ($user->isTrainer()) {
+            return $query->whereHas('subscriptions', function (Builder $subQuery) use ($user): void {
+                $subQuery->where('trainer_id', $user->id)
+                    ->where('status', 'ongoing');
+            });
+        }
+
+        if ($user->isMember()) {
+            $memberId = $user->member?->id;
+
+            return $memberId
+                ? $query->where('id', $memberId)
+                : $query->whereRaw('1 = 0');
+        }
+
+        return $query;
     }
 }

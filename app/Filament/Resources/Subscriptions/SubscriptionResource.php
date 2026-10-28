@@ -134,4 +134,37 @@ class SubscriptionResource extends Resource
             'edit' => EditSubscription::route('/{record}/edit'),
         ];
     }
+
+    /**
+     * Scope subscription queries according to user role.
+     *
+     * @return Builder<Subscription>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if (! $user) {
+            return $query;
+        }
+
+        if ($user->isSuperAdmin() || $user->isFrontDesk()) {
+            return $query;
+        }
+
+        if ($user->isTrainer()) {
+            return $query->where('trainer_id', $user->id);
+        }
+
+        if ($user->isMember()) {
+            $memberId = $user->member?->id;
+
+            return $memberId !== null
+                ? $query->where('member_id', $memberId)
+                : $query->whereRaw('1 = 0');
+        }
+
+        return $query;
+    }
 }

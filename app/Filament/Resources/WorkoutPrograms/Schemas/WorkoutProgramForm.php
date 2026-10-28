@@ -13,7 +13,9 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Schema;
+use Illuminate\Database\Eloquent\Builder;
 
 class WorkoutProgramForm
 {
@@ -44,22 +46,38 @@ class WorkoutProgramForm
 
                         Select::make('member_id')
                             ->label(__('app.fields.member'))
-                            ->relationship('member', 'name')
+                            ->relationship('member', 'name', modifyQueryUsing: function (Builder $query): void {
+                                $user = auth()->user();
+                                if ($user && $user->isTrainer() && ! $user->isSuperAdmin() && ! $user->isFrontDesk()) {
+                                    $query->whereHas('subscriptions', function (Builder $sub) use ($user): void {
+                                        $sub->where('trainer_id', $user->id)
+                                            ->where('status', 'ongoing');
+                                    });
+                                }
+                            })
                             ->searchable()
                             ->preload()
                             ->required()
+                            ->live()
                             ->columnSpan(1),
 
                         Select::make('trainer_id')
                             ->label(__('app.fields.trainer'))
                             ->options(fn (): array => User::getTrainerOptions())
+                            ->default(fn (): ?int => (auth()->user()?->isTrainer() && ! auth()->user()?->isSuperAdmin() && ! auth()->user()?->isFrontDesk()) ? auth()->id() : null)
+                            ->disabled(fn (): bool => (bool) (auth()->user()?->isTrainer() && ! auth()->user()?->isSuperAdmin() && ! auth()->user()?->isFrontDesk()))
+                            ->dehydrated()
                             ->searchable()
                             ->nullable()
                             ->columnSpan(1),
 
                         Select::make('subscription_id')
                             ->label(__('app.fields.subscription'))
-                            ->relationship('subscription', 'id')
+                            ->relationship('subscription', 'id', modifyQueryUsing: function (Builder $query, Get $get): void {
+                                if ($memberId = $get('member_id')) {
+                                    $query->where('member_id', $memberId);
+                                }
+                            })
                             ->searchable()
                             ->nullable()
                             ->columnSpan(1),

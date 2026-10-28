@@ -13,6 +13,7 @@ use App\Models\WorkoutProgram;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * @extends Resource<WorkoutProgram>
@@ -64,5 +65,38 @@ class WorkoutProgramResource extends Resource
             'create' => CreateWorkoutProgram::route('/create'),
             'edit' => EditWorkoutProgram::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * Scope workout program queries according to user role.
+     *
+     * @return Builder<WorkoutProgram>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if (! $user) {
+            return $query;
+        }
+
+        if ($user->isSuperAdmin()) {
+            return $query;
+        }
+
+        if ($user->isTrainer()) {
+            return $query->where('trainer_id', $user->id);
+        }
+
+        if ($user->isMember()) {
+            $memberId = $user->member?->id;
+
+            return $memberId
+                ? $query->where('member_id', $memberId)
+                : $query->whereRaw('1 = 0');
+        }
+
+        return $query;
     }
 }

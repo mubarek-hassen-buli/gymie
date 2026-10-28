@@ -15,6 +15,7 @@ use App\Models\TrainingSession;
 use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 /**
  * @extends Resource<TrainingSession>
@@ -75,5 +76,38 @@ class TrainingSessionResource extends Resource
             'view' => ViewTrainingSession::route('/{record}'),
             'edit' => EditTrainingSession::route('/{record}/edit'),
         ];
+    }
+
+    /**
+     * Scope training session queries according to user role.
+     *
+     * @return Builder<TrainingSession>
+     */
+    public static function getEloquentQuery(): Builder
+    {
+        $query = parent::getEloquentQuery();
+        $user = auth()->user();
+
+        if (! $user) {
+            return $query;
+        }
+
+        if ($user->isSuperAdmin() || $user->isFrontDesk()) {
+            return $query;
+        }
+
+        if ($user->isTrainer()) {
+            return $query->where('trainer_id', $user->id);
+        }
+
+        if ($user->isMember()) {
+            $memberId = $user->member?->id;
+
+            return $memberId
+                ? $query->where('member_id', $memberId)
+                : $query->whereRaw('1 = 0');
+        }
+
+        return $query;
     }
 }

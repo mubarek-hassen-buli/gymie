@@ -138,9 +138,29 @@ class InvoiceResource extends Resource
      */
     public static function getEloquentQuery(): Builder
     {
-        return parent::getEloquentQuery()
+        $query = parent::getEloquentQuery()
             ->withoutGlobalScopes([
                 SoftDeletingScope::class,
             ]);
+
+        $user = auth()->user();
+
+        if (! $user) {
+            return $query;
+        }
+
+        if ($user->isSuperAdmin() || $user->isFrontDesk()) {
+            return $query;
+        }
+
+        if ($user->isMember()) {
+            $memberId = $user->member?->id;
+
+            return $memberId
+                ? $query->whereHas('subscription', fn (Builder $subQuery): Builder => $subQuery->where('member_id', $memberId))
+                : $query->whereRaw('1 = 0');
+        }
+
+        return $query;
     }
 }

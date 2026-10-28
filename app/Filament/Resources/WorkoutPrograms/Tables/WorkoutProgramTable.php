@@ -13,6 +13,7 @@ use Filament\Actions\CreateAction;
 use Filament\Actions\DeleteAction;
 use Filament\Actions\DeleteBulkAction;
 use Filament\Actions\EditAction;
+use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -87,7 +88,8 @@ class WorkoutProgramTable
             ->emptyStateActions([
                 CreateAction::make()
                     ->icon('heroicon-o-plus')
-                    ->label(__('app.actions.new', ['resource' => __('app.resources.workout_programs.singular')])),
+                    ->label(__('app.actions.new', ['resource' => __('app.resources.workout_programs.singular')]))
+                    ->visible(fn (): bool => ! (bool) auth()->user()?->isMember()),
             ])
             ->filters([
                 SelectFilter::make('status')
@@ -97,22 +99,36 @@ class WorkoutProgramTable
                 SelectFilter::make('trainer_id')
                     ->label(__('app.fields.trainer'))
                     ->options(fn (): array => User::getTrainerOptions())
+                    ->visible(fn (): bool => ! (bool) (auth()->user()?->isTrainer() && ! auth()->user()?->isSuperAdmin() && ! auth()->user()?->isFrontDesk()))
                     ->searchable(),
 
                 SelectFilter::make('member_id')
                     ->label(__('app.fields.member'))
-                    ->relationship('member', 'name')
+                    ->relationship('member', 'name', modifyQueryUsing: function ($query): void {
+                        $user = auth()->user();
+                        if ($user && $user->isTrainer() && ! $user->isSuperAdmin() && ! $user->isFrontDesk()) {
+                            $query->whereHas('subscriptions', function ($sub) use ($user): void {
+                                $sub->where('trainer_id', $user->id)
+                                    ->where('status', 'ongoing');
+                            });
+                        }
+                    })
+                    ->visible(fn (): bool => ! (bool) auth()->user()?->isMember())
                     ->searchable(),
             ])
             ->recordActions([
                 ActionGroup::make([
-                    EditAction::make(),
-                    DeleteAction::make(),
+                    ViewAction::make(),
+                    EditAction::make()
+                        ->visible(fn (): bool => ! (bool) auth()->user()?->isMember()),
+                    DeleteAction::make()
+                        ->visible(fn (): bool => ! (bool) auth()->user()?->isMember()),
                 ]),
             ])
             ->toolbarActions([
                 BulkActionGroup::make([
-                    DeleteBulkAction::make(),
+                    DeleteBulkAction::make()
+                        ->visible(fn (): bool => ! (bool) auth()->user()?->isMember()),
                 ]),
             ]);
     }
