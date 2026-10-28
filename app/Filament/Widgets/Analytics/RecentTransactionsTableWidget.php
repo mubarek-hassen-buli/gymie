@@ -23,6 +23,17 @@ class RecentTransactionsTableWidget extends TableWidget
 
     protected static ?int $sort = -35;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return true;
+        }
+
+        return $user->isSuperAdmin();
+    }
+
     protected static ?string $heading = null;
 
     /**

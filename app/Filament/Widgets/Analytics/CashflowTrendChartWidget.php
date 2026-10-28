@@ -25,6 +25,17 @@ class CashflowTrendChartWidget extends ChartWidget
 
     protected static ?int $sort = -38;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return true;
+        }
+
+        return $user->isSuperAdmin();
+    }
+
     protected ?string $maxHeight = '400px';
 
     public ?string $filter = '7days';

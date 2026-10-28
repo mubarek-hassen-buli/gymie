@@ -69,6 +69,11 @@ class MemberInfolist
                                 TextEntry::make('health_issue')
                                     ->label(__('app.fields.health_issues'))
                                     ->placeholder(__('app.placeholders.na')),
+                                TextEntry::make('user.email')
+                                    ->label('Portal Login')
+                                    ->badge()
+                                    ->color(fn (Member $record): string => $record->user_id !== null ? 'success' : 'gray')
+                                    ->formatStateUsing(fn (Member $record): string => $record->user !== null ? $record->user->email : 'Not Activated'),
                             ])->columnSpan(4)->columns(3),
                     ])->columns(5),
                 Section::make(__('app.ui.location'))

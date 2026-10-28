@@ -19,6 +19,17 @@ class MembershipMetricsWidget extends StatsOverviewWidget
 
     protected static ?int $sort = -41;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return true;
+        }
+
+        return $user->isSuperAdmin() || $user->isFrontDesk();
+    }
+
     protected int|string|array $columnSpan = 'full';
 
     /**

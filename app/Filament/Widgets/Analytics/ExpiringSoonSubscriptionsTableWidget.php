@@ -26,6 +26,17 @@ class ExpiringSoonSubscriptionsTableWidget extends TableWidget
 {
     protected static ?int $sort = -39;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return true;
+        }
+
+        return $user->isSuperAdmin() || $user->isFrontDesk();
+    }
+
     protected static ?string $heading = null;
 
     /**

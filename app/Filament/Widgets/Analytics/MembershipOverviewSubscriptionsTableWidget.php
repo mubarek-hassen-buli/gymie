@@ -28,6 +28,17 @@ class MembershipOverviewSubscriptionsTableWidget extends TableWidget
 {
     protected static ?int $sort = -39;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return true;
+        }
+
+        return $user->isSuperAdmin() || $user->isFrontDesk();
+    }
+
     /**
      * @var int | string | array<string, int | null>
      */

@@ -33,6 +33,17 @@ class FinancialMetricsWidget extends StatsOverviewWidget
      */
     protected int|array|null $columns = 2;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return true;
+        }
+
+        return $user->isSuperAdmin();
+    }
+
     /**
      * Build an inline delta label for KPI cards.
      *

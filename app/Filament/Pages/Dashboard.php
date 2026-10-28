@@ -8,6 +8,10 @@ use App\Filament\Widgets\Analytics\FinancialMetricsWidget;
 use App\Filament\Widgets\Analytics\MembershipMetricsWidget;
 use App\Filament\Widgets\Analytics\MembershipOverviewSubscriptionsTableWidget;
 use App\Filament\Widgets\Analytics\RecentTransactionsTableWidget;
+use App\Filament\Widgets\Member\MemberPortalOverviewWidget;
+use App\Filament\Widgets\Member\MemberUpcomingSessionsTableWidget;
+use App\Filament\Widgets\Trainer\TrainerStatsWidget;
+use App\Filament\Widgets\Trainer\TrainerTodaySessionsTableWidget;
 use Carbon\CarbonImmutable;
 use Filament\Forms\Components\DatePicker;
 use Filament\Forms\Components\Select;
@@ -137,7 +141,38 @@ class Dashboard extends \Filament\Pages\Dashboard
      */
     public function getWidgetsContentComponent(): Component
     {
+        $user = auth()->user();
         $columns = $this->getColumns();
+
+        if ($user && $user->isTrainer()) {
+            return Grid::make(1)->schema([
+                Grid::make(1)->schema(
+                    $this->getWidgetsSchemaComponents([
+                        TrainerStatsWidget::class,
+                    ]),
+                ),
+                Grid::make(1)->schema(
+                    $this->getWidgetsSchemaComponents([
+                        TrainerTodaySessionsTableWidget::class,
+                    ]),
+                ),
+            ]);
+        }
+
+        if ($user && $user->isMember()) {
+            return Grid::make(1)->schema([
+                Grid::make(1)->schema(
+                    $this->getWidgetsSchemaComponents([
+                        MemberPortalOverviewWidget::class,
+                    ]),
+                ),
+                Grid::make(1)->schema(
+                    $this->getWidgetsSchemaComponents([
+                        MemberUpcomingSessionsTableWidget::class,
+                    ]),
+                ),
+            ]);
+        }
 
         return Grid::make(1)->schema([
             Grid::make($columns)->schema([

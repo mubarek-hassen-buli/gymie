@@ -3,6 +3,8 @@
 namespace App\Filament\Resources\Members\Tables;
 
 use App\Enums\Status;
+use App\Filament\Resources\Members\Actions\CreateMemberAccountAction;
+use App\Filament\Resources\Members\Actions\UnlinkMemberAccountAction;
 use App\Models\Member;
 use App\Support\Filament\StatusAction;
 use Carbon\Carbon;
@@ -187,6 +189,8 @@ class MemberTable
                             ->label(__('app.actions.record_actions'))
                             ->disabled()
                             ->color('gray'),
+                        CreateMemberAccountAction::make(),
+                        UnlinkMemberAccountAction::make(),
                         ViewAction::make(),
                         EditAction::make()->hiddenLabel(),
                         DeleteAction::make()->hiddenLabel(),

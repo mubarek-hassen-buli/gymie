@@ -17,6 +17,17 @@ class TopPlansByCollectedBarChartWidget extends ChartWidget
 
     protected static ?int $sort = -37;
 
+    public static function canView(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return true;
+        }
+
+        return $user->isSuperAdmin();
+    }
+
     protected ?string $maxHeight = '320px';
 
     /**

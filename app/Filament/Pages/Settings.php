@@ -75,6 +75,17 @@ class Settings extends Page implements HasForms
         return __('app.settings.title');
     }
 
+    public static function canAccess(): bool
+    {
+        $user = auth()->user();
+
+        if (! $user) {
+            return true;
+        }
+
+        return $user->isSuperAdmin();
+    }
+
     /**
      * Defines the form schema with multiple tabs.
      *

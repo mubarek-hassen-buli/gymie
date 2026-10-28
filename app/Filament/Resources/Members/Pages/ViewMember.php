@@ -2,6 +2,8 @@
 
 namespace App\Filament\Resources\Members\Pages;
 
+use App\Filament\Resources\Members\Actions\CreateMemberAccountAction;
+use App\Filament\Resources\Members\Actions\UnlinkMemberAccountAction;
 use App\Filament\Resources\Members\MemberResource;
 use App\Models\Member;
 use Filament\Actions\DeleteAction;
@@ -18,6 +20,8 @@ class ViewMember extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            CreateMemberAccountAction::make(),
+            UnlinkMemberAccountAction::make(),
             EditAction::make(),
             DeleteAction::make(),
         ];
