@@ -42,6 +42,7 @@ final class LocationSection
                             ->options(Helpers::getCountries())
                             ->searchable($countrySearchable)
                             ->preload($countryPreloaded)
+                            ->default('Ethiopia')
                             ->required()
                             ->live()
                             ->afterStateUpdated(function (Set $set): void {
@@ -51,14 +52,27 @@ final class LocationSection
                         Select::make('state')
                             ->label(__('app.fields.state'))
                             ->placeholder(__('app.placeholders.select_state'))
-                            ->options(fn(Get $get): array => Helpers::getStates($get->string('country', isNullable: true)))
+                            ->options(fn (Get $get): array => Helpers::getStates($get->string('country', isNullable: true) ?: 'Ethiopia'))
                             ->searchable($regionSearchable)
                             ->live(),
                         Select::make('city')
                             ->label(__('app.fields.city'))
                             ->placeholder(__('app.placeholders.select_city'))
-                            ->options(fn(Get $get): array => Helpers::getCities($get->string('state', isNullable: true)))
-                            ->searchable($regionSearchable)
+                            ->options(function (Get $get, ?string $state): array {
+                                $options = Helpers::getCities($get->string('state', isNullable: true) ?: 'Addis Ababa');
+                                if ($state && ! isset($options[$state])) {
+                                    $options[$state] = $state;
+                                }
+
+                                return $options;
+                            })
+                            ->searchable()
+                            ->createOptionForm([
+                                TextInput::make('name')
+                                    ->label('City / Town / Sub-city')
+                                    ->required(),
+                            ])
+                            ->createOptionUsing(fn (array $data): string => trim($data['name']))
                             ->live(),
                         TextInput::make('pincode')
                             ->label(__('app.fields.pincode'))

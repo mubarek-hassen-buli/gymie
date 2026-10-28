@@ -13,13 +13,14 @@ use App\Support\Billing\TaxRate;
 use App\Support\Data;
 use App\Support\Dates\FiscalYear;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Lang;
 use Illuminate\Support\Str;
 use Nnjeim\World\WorldHelper;
 
 class Helpers
 {
-    private const DEFAULT_CURRENCY = 'INR';
+    private const DEFAULT_CURRENCY = 'ETB';
 
     private const DEFAULT_EXPENSE_CATEGORIES = [
         'Rent',
@@ -67,11 +68,22 @@ class Helpers
      */
     public static function getCountries(): array
     {
-        return collect(self::fallbackCountries())
-            ->pluck('name', 'name')
-            ->mapWithKeys(fn (mixed $name, mixed $key): array => [Data::string($key) => Data::string($name)])
-            ->sortKeys()
-            ->all();
+        return Cache::rememberForever('world_countries_list', function (): array {
+            $countries = collect(self::fallbackCountries())
+                ->pluck('name', 'name')
+                ->mapWithKeys(fn (mixed $name, mixed $key): array => [Data::string($key) => Data::string($name)])
+                ->sortKeys()
+                ->all();
+
+            if (isset($countries['Ethiopia'])) {
+                $ethiopia = $countries['Ethiopia'];
+                unset($countries['Ethiopia']);
+
+                return ['Ethiopia' => $ethiopia] + $countries;
+            }
+
+            return ['Ethiopia' => 'Ethiopia'] + $countries;
+        });
     }
 
     /**
@@ -81,13 +93,15 @@ class Helpers
      */
     public static function getCountriesWithCodes(): array
     {
-        return collect(self::fallbackCountries())
-            ->mapWithKeys(fn (mixed $country): array => [
-                Data::string(data_get($country, 'iso2')) => Data::string(data_get($country, 'name')),
-            ])
-            ->filter(fn (mixed $name, mixed $code): bool => Data::string($code) !== '' && Data::string($name) !== '')
-            ->sort()
-            ->all();
+        return Cache::rememberForever('world_countries_with_codes', function (): array {
+            return collect(self::fallbackCountries())
+                ->mapWithKeys(fn (mixed $country): array => [
+                    Data::string(data_get($country, 'iso2')) => Data::string(data_get($country, 'name')),
+                ])
+                ->filter(fn (mixed $name, mixed $code): bool => Data::string($code) !== '' && Data::string($name) !== '')
+                ->sort()
+                ->all();
+        });
     }
 
     /**
@@ -97,6 +111,10 @@ class Helpers
     {
         if (blank($countryName)) {
             return null;
+        }
+
+        if (strtolower(trim($countryName)) === 'ethiopia') {
+            return '251';
         }
 
         try {
@@ -161,42 +179,62 @@ class Helpers
      */
     public static function getStates(?string $countryName): array
     {
-        if (app()->runningUnitTests()) {
-            return [];
-        }
-
         if (is_null($countryName)) {
             return [];
         }
 
-        // Retrieve country details to get the country code
-        $countryResponse = self::worldResponse('countries', [
-            'filters' => ['name' => $countryName],
-        ]);
+        if (strtolower(trim($countryName)) === 'ethiopia') {
+            return [
+                'Addis Ababa' => 'Addis Ababa',
+                'Afar Region' => 'Afar Region',
+                'Amhara Region' => 'Amhara Region',
+                'Benishangul-Gumuz Region' => 'Benishangul-Gumuz Region',
+                'Central Ethiopia Regional State' => 'Central Ethiopia Regional State',
+                'Dire Dawa' => 'Dire Dawa',
+                'Gambela Region' => 'Gambela Region',
+                'Harari Region' => 'Harari Region',
+                'Oromia Region' => 'Oromia Region',
+                'Sidama Region' => 'Sidama Region',
+                'Somali Region' => 'Somali Region',
+                'South Ethiopia Regional State' => 'South Ethiopia Regional State',
+                'South West Ethiopia Peoples\' Region' => 'South West Ethiopia Peoples\' Region',
+                'Southern Nations, Nationalities, and Peoples\' Region' => 'Southern Nations, Nationalities, and Peoples\' Region',
+                'Tigray Region' => 'Tigray Region',
+            ];
+        }
 
-        if (! $countryResponse->success || empty($countryResponse->data)) {
+        if (app()->runningUnitTests()) {
             return [];
         }
 
-        $countryId = collect($countryResponse->data)->pluck('id')->first();
+        return Cache::rememberForever('world_states_'.md5($countryName), function () use ($countryName): array {
+            $countryResponse = self::worldResponse('countries', [
+                'filters' => ['name' => $countryName],
+            ]);
 
-        if (! $countryId) {
-            return [];
-        }
+            if (! $countryResponse->success || empty($countryResponse->data)) {
+                return [];
+            }
 
-        // Retrieve states using the country code
-        $stateResponse = self::worldResponse('states', [
-            'filters' => ['country_id' => $countryId],
-        ]);
+            $countryId = collect($countryResponse->data)->pluck('id')->first();
 
-        if (! $stateResponse->success) {
-            return [];
-        }
+            if (! $countryId) {
+                return [];
+            }
 
-        return collect($stateResponse->data)
-            ->pluck('name', 'name')
-            ->mapWithKeys(fn (mixed $name, mixed $key): array => [Data::string($key) => Data::string($name)])
-            ->all();
+            $stateResponse = self::worldResponse('states', [
+                'filters' => ['country_id' => $countryId],
+            ]);
+
+            if (! $stateResponse->success) {
+                return [];
+            }
+
+            return collect($stateResponse->data)
+                ->pluck('name', 'name')
+                ->mapWithKeys(fn (mixed $name, mixed $key): array => [Data::string($key) => Data::string($name)])
+                ->all();
+        });
     }
 
     /**
@@ -209,42 +247,105 @@ class Helpers
      */
     public static function getCities(?string $stateName): array
     {
-        if (app()->runningUnitTests()) {
-            return [];
-        }
-
         if (is_null($stateName)) {
             return [];
         }
 
-        // Retrieve state details to get the state code
-        $stateResponse = self::worldResponse('states', [
-            'filters' => ['name' => $stateName],
-        ]);
+        $ethiopianCities = [
+            'Addis Ababa' => [
+                'Addis Ababa', 'Bole', 'Yeka', 'Kirkos', 'Nifas Silk-Lafto',
+                'Kolfe Keranio', 'Arada', 'Lideta', 'Akaky Kaliti', 'Gullele',
+                'Addis Ketema', 'Lemi Kura', 'Kazanchis', 'Sarbet', 'CMC',
+                'Piassa', 'Megenagna', 'Mexico', 'Gerji', 'Jemo', 'Lebu',
+                'Bethel', 'Gotera', 'Ayat', 'Kotebe', '22 Mazoria', '4 Kilo', '6 Kilo',
+            ],
+            'Oromia Region' => [
+                'Adama (Nazret)', 'Bishoftu (Debre Zeyit)', 'Jimma', 'Shashemene',
+                'Asella', 'Ambo', 'Waliso', 'Sebeta', 'Burayu', 'Dukem',
+                'Mojo', 'Robe', 'Adaba', 'Dodola', 'Goba', 'Nekemte',
+                'Chiro', 'Fiche', 'Batu (Ziway)', 'Gimbi', 'Metu', 'Shambu',
+            ],
+            'Dire Dawa' => [
+                'Dire Dawa', 'Sabian', 'Gende Kore', 'Melka Jebdu', 'Kebele 01 - 09',
+            ],
+            'Amhara Region' => [
+                'Bahir Dar', 'Gondar', 'Dessie', 'Kombolcha', 'Debre Birhan',
+                'Debre Markos', 'Woldiya', 'Finote Selam', 'Kobo',
+            ],
+            'Sidama Region' => [
+                'Hawassa', 'Yirgalem', 'Aleta Wendo', 'Wondo Genet', 'Hula',
+            ],
+            'Tigray Region' => [
+                'Mekelle', 'Adigrat', 'Axum', 'Shire (Inda Selassie)', 'Adwa', 'Alamata',
+            ],
+            'Somali Region' => [
+                'Jigjiga', 'Gode', 'Degehabur', 'Kebri Dahar', 'Wardher',
+            ],
+            'Harari Region' => [
+                'Harar',
+            ],
+            'Afar Region' => [
+                'Semera', 'Asaita', 'Awash', 'Dubti', 'Mille',
+            ],
+            'Benishangul-Gumuz Region' => [
+                'Assosa', 'Kamashi', 'Gilgel Beles', 'Kurmuk',
+            ],
+            'Gambela Region' => [
+                'Gambela', 'Itang', 'Abobo',
+            ],
+            'South West Ethiopia Peoples\' Region' => [
+                'Bonga', 'Mizan Teferi', 'Tepi', 'Tercha',
+            ],
+            'Central Ethiopia Regional State' => [
+                'Wolkite', 'Butajira', 'Hosaena', 'Halaba Kulito', 'Worabe',
+            ],
+            'South Ethiopia Regional State' => [
+                'Wolaita Sodo', 'Arba Minch', 'Dilla', 'Jinka', 'Sawla',
+            ],
+            'Southern Nations, Nationalities, and Peoples\' Region' => [
+                'Hawassa', 'Wolaita Sodo', 'Arba Minch', 'Hosaena', 'Dilla', 'Butajira',
+            ],
+        ];
 
-        if (! $stateResponse->success || empty($stateResponse->data)) {
+        if (isset($ethiopianCities[$stateName])) {
+            return collect($ethiopianCities[$stateName])
+                ->mapWithKeys(fn (string $city): array => [$city => $city])
+                ->sortKeys()
+                ->all();
+        }
+
+        if (app()->runningUnitTests()) {
             return [];
         }
 
-        $stateCode = collect($stateResponse->data)->pluck('id')->first();
+        return Cache::rememberForever('world_cities_'.md5($stateName), function () use ($stateName): array {
+            $stateResponse = self::worldResponse('states', [
+                'filters' => ['name' => $stateName],
+            ]);
 
-        if (! $stateCode) {
-            return [];
-        }
+            if (! $stateResponse->success || empty($stateResponse->data)) {
+                return [];
+            }
 
-        // Retrieve cities using the state code
-        $cityResponse = self::worldResponse('cities', [
-            'filters' => ['state_id' => $stateCode],
-        ]);
+            $stateCode = collect($stateResponse->data)->pluck('id')->first();
 
-        if (! $cityResponse->success || empty($cityResponse->data)) {
-            return [];
-        }
+            if (! $stateCode) {
+                return [];
+            }
 
-        return collect($cityResponse->data)
-            ->pluck('name', 'name')
-            ->mapWithKeys(fn (mixed $name, mixed $key): array => [Data::string($key) => Data::string($name)])
-            ->all();
+            $cityResponse = self::worldResponse('cities', [
+                'filters' => ['state_id' => $stateCode],
+            ]);
+
+            if (! $cityResponse->success || empty($cityResponse->data)) {
+                return [];
+            }
+
+            return collect($cityResponse->data)
+                ->pluck('name', 'name')
+                ->mapWithKeys(fn (mixed $name, mixed $key): array => [Data::string($key) => Data::string($name)])
+                ->all();
+        });
     }
 
     /**
@@ -259,18 +360,29 @@ class Helpers
             return [];
         }
 
-        $currencyResponse = self::worldResponse('currencies', [
-            'fields' => 'name,code',
-        ]);
+        return Cache::rememberForever('world_currencies_list', function (): array {
+            $currencyResponse = self::worldResponse('currencies', [
+                'fields' => 'name,code',
+            ]);
 
-        if (! $currencyResponse->success) {
-            return [];
-        }
+            if (! $currencyResponse->success) {
+                return ['ETB' => 'Ethiopian Birr', 'USD' => 'US Dollar', 'EUR' => 'Euro'];
+            }
 
-        return collect($currencyResponse->data)
-            ->pluck('name', 'code')
-            ->mapWithKeys(fn (mixed $name, mixed $key): array => [Data::string($key) => Data::string($name)])
-            ->all();
+            $list = collect($currencyResponse->data)
+                ->pluck('name', 'code')
+                ->mapWithKeys(fn (mixed $name, mixed $key): array => [Data::string($key) => Data::string($name)])
+                ->all();
+
+            if (isset($list['ETB'])) {
+                $etb = $list['ETB'];
+                unset($list['ETB']);
+
+                return ['ETB' => $etb] + $list;
+            }
+
+            return ['ETB' => 'Ethiopian Birr'] + $list;
+        });
     }
 
     /**

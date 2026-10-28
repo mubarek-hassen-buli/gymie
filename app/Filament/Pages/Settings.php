@@ -124,6 +124,7 @@ class Settings extends Page implements HasForms
                                 Select::make('general.currency')
                                     ->label(__('app.settings.fields.currency'))
                                     ->options(Helpers::getCurrencies())
+                                    ->default('ETB')
                                     ->searchable(),
                                 FileUpload::make('general.gym_logo')
                                     ->label(__('app.settings.fields.gym_logo'))
@@ -180,6 +181,7 @@ class Settings extends Page implements HasForms
                                 Select::make('general.country')
                                     ->label(__('app.settings.fields.country'))
                                     ->options(Helpers::getCountries())
+                                    ->default('Ethiopia')
                                     ->searchable()
                                     ->reactive()
                                     ->afterStateUpdated(fn($state, callable $set) => [
@@ -188,13 +190,26 @@ class Settings extends Page implements HasForms
                                     ]),
                                 Select::make('general.state')
                                     ->label(__('app.settings.fields.state'))
-                                    ->options(fn($get) => Helpers::getStates($get('general.country')))
+                                    ->options(fn($get) => Helpers::getStates($get('general.country') ?: 'Ethiopia'))
                                     ->searchable()
                                     ->reactive(),
                                 Select::make('general.city')
                                     ->label(__('app.settings.fields.city'))
-                                    ->options(fn($get) => Helpers::getCities($get('general.state')))
+                                    ->options(function ($get, ?string $state): array {
+                                        $options = Helpers::getCities($get('general.state') ?: 'Addis Ababa');
+                                        if ($state && ! isset($options[$state])) {
+                                            $options[$state] = $state;
+                                        }
+
+                                        return $options;
+                                    })
                                     ->searchable()
+                                    ->createOptionForm([
+                                        TextInput::make('name')
+                                            ->label('City / Town / Sub-city')
+                                            ->required(),
+                                    ])
+                                    ->createOptionUsing(fn (array $data): string => trim($data['name']))
                                     ->reactive(),
                                 TextInput::make('general.zip')
                                     ->label(__('app.settings.fields.zip'))

@@ -16,7 +16,7 @@ final class Currency
      *
      * @param  array<string, mixed>  $settings
      */
-    public static function codeFromSettings(array $settings, string $defaultCode = 'INR'): string
+    public static function codeFromSettings(array $settings, string $defaultCode = 'ETB'): string
     {
         $general = is_array($settings['general'] ?? null) ? $settings['general'] : [];
         $currency = $general['currency'] ?? null;
@@ -37,8 +37,12 @@ final class Currency
      */
     public static function symbol(string $currencyCode): string
     {
+        if (strtoupper($currencyCode) === 'ETB') {
+            return 'ETB';
+        }
+
         $formatter = new NumberFormatter('en'."@currency={$currencyCode}", NumberFormatter::CURRENCY);
 
-        return $formatter->getSymbol(NumberFormatter::CURRENCY_SYMBOL) ?: '';
+        return $formatter->getSymbol(NumberFormatter::CURRENCY_SYMBOL) ?: $currencyCode;
     }
 }
