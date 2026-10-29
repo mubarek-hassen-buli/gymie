@@ -41,7 +41,7 @@ final class LocationSection
                             ->placeholder(__('app.placeholders.select_country'))
                             ->options(Helpers::getCountries())
                             ->searchable($countrySearchable)
-                            ->preload($countryPreloaded)
+                            ->preload()
                             ->default('Ethiopia')
                             ->required()
                             ->live()
@@ -54,6 +54,7 @@ final class LocationSection
                             ->placeholder(__('app.placeholders.select_state'))
                             ->options(fn (Get $get): array => Helpers::getStates($get->string('country', isNullable: true) ?: 'Ethiopia'))
                             ->searchable($regionSearchable)
+                            ->preload()
                             ->live(),
                         Select::make('city')
                             ->label(__('app.fields.city'))
@@ -67,13 +68,13 @@ final class LocationSection
                                 return $options;
                             })
                             ->searchable()
+                            ->preload()
                             ->createOptionForm([
                                 TextInput::make('name')
                                     ->label('City / Town / Sub-city')
                                     ->required(),
                             ])
-                            ->createOptionUsing(fn (array $data): string => trim($data['name']))
-                            ->live(),
+                            ->createOptionUsing(fn (array $data): string => trim($data['name'])),
                         TextInput::make('pincode')
                             ->label(__('app.fields.pincode'))
                             ->required($pincodeRequired)

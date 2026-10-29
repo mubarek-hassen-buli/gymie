@@ -70,7 +70,7 @@ class MemberForm
                                 TextInput::make('email')
                                     ->label(__('app.fields.email'))
                                     ->email()
-                                    ->live()
+                                    ->live(onBlur: true)
                                     ->maxLength(255)
                                     ->required()
                                     ->placeholder(__('app.placeholders.example_email'))
@@ -116,6 +116,7 @@ class MemberForm
                                         'others' => __('app.options.source.others'),
                                     ])->default('promotions')
                                     ->label(__('app.fields.source'))
+                                    ->preload()
                                     ->selectablePlaceholder(false),
                                 Select::make('goal')
                                     ->options([
@@ -126,6 +127,7 @@ class MemberForm
                                         'others' => __('app.options.goal.others'),
                                     ])->default('fitness')
                                     ->label(__('app.fields.goal'))
+                                    ->preload()
                                     ->selectablePlaceholder(false),
                             ])->columns(3)->columnSpan(3),
                     ])->columns(4),

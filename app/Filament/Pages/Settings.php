@@ -125,6 +125,7 @@ class Settings extends Page implements HasForms
                                     ->label(__('app.settings.fields.currency'))
                                     ->options(Helpers::getCurrencies())
                                     ->default('ETB')
+                                    ->preload()
                                     ->searchable(),
                                 FileUpload::make('general.gym_logo')
                                     ->label(__('app.settings.fields.gym_logo'))
@@ -183,6 +184,7 @@ class Settings extends Page implements HasForms
                                     ->options(Helpers::getCountries())
                                     ->default('Ethiopia')
                                     ->searchable()
+                                    ->preload()
                                     ->reactive()
                                     ->afterStateUpdated(fn($state, callable $set) => [
                                         $set('general.state', null),
@@ -192,6 +194,7 @@ class Settings extends Page implements HasForms
                                     ->label(__('app.settings.fields.state'))
                                     ->options(fn($get) => Helpers::getStates($get('general.country') ?: 'Ethiopia'))
                                     ->searchable()
+                                    ->preload()
                                     ->reactive(),
                                 Select::make('general.city')
                                     ->label(__('app.settings.fields.city'))
@@ -204,13 +207,13 @@ class Settings extends Page implements HasForms
                                         return $options;
                                     })
                                     ->searchable()
+                                    ->preload()
                                     ->createOptionForm([
                                         TextInput::make('name')
                                             ->label('City / Town / Sub-city')
                                             ->required(),
                                     ])
-                                    ->createOptionUsing(fn (array $data): string => trim($data['name']))
-                                    ->reactive(),
+                                    ->createOptionUsing(fn (array $data): string => trim($data['name'])),
                                 TextInput::make('general.zip')
                                     ->label(__('app.settings.fields.zip'))
                                     ->maxLength(10),

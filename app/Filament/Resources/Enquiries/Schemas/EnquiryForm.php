@@ -35,7 +35,7 @@ class EnquiryForm
                             ->label(__('app.fields.email'))
                             ->email()
                             ->required()
-                            ->live()
+                            ->live(onBlur: true)
                             ->placeholder(__('app.placeholders.example_email'))
                             ->unique('enquiries', 'email', ignoreRecord: true),
                         TextInput::make('contact')
@@ -63,6 +63,7 @@ class EnquiryForm
                             ->label(__('app.fields.lead_owner'))
                             ->placeholder(__('app.placeholders.select_lead_owner'))
                             ->relationship('user', 'name')
+                            ->preload()
                             ->required()
                             ->getOptionLabelFromRecordUsing(function (User $record): string {
                                 $name = html_entity_decode($record->name, ENT_QUOTES, 'UTF-8');
@@ -91,6 +92,7 @@ class EnquiryForm
                         Select::make('interested_in')
                             ->label(__('app.fields.interested_in'))
                             ->multiple()
+                            ->preload()
                             ->placeholder(__('app.placeholders.select_services'))
                             ->options(fn () => Service::pluck('name', 'name')->toArray()),
                         Select::make('source')
@@ -100,6 +102,7 @@ class EnquiryForm
                                 'others' => __('app.options.source.others'),
                             ])->default('promotions')
                             ->label(__('app.fields.source'))
+                            ->preload()
                             ->selectablePlaceholder(false),
                         Select::make('goal')
                             ->options([
@@ -110,6 +113,7 @@ class EnquiryForm
                                 'others' => __('app.options.goal.others'),
                             ])->default('fitness')
                             ->label(__('app.fields.goal'))
+                            ->preload()
                             ->selectablePlaceholder(false),
                     ])->columns(3),
                 Section::make(__('app.ui.follow_details'))
