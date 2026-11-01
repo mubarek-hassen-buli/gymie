@@ -7,6 +7,7 @@ namespace App\Filament\Widgets\Trainer;
 use App\Enums\SessionStatus;
 use App\Filament\Resources\TrainingSessions\TrainingSessionResource;
 use App\Models\TrainingSession;
+use App\Services\PersonalTraining\SessionSchedulingService;
 use Carbon\Carbon;
 use Filament\Actions\Action;
 use Filament\Actions\ViewAction;
@@ -75,10 +76,9 @@ class TrainerTodaySessionsTableWidget extends TableWidget
                     ->requiresConfirmation()
                     ->visible(fn (TrainingSession $record): bool => in_array($record->status?->value ?? (string) $record->status, [
                         SessionStatus::Scheduled->value,
-                        SessionStatus::InProgress->value,
                     ], true))
-                    ->action(function (TrainingSession $record): void {
-                        $record->update(['status' => SessionStatus::Completed]);
+                    ->action(function (TrainingSession $record, SessionSchedulingService $service): void {
+                        $service->completeSession($record);
                         Notification::make()
                             ->title('Session Completed')
                             ->body("Marked session with {$record->member?->name} as completed.")
@@ -94,8 +94,8 @@ class TrainerTodaySessionsTableWidget extends TableWidget
                     ->visible(fn (TrainingSession $record): bool => in_array($record->status?->value ?? (string) $record->status, [
                         SessionStatus::Scheduled->value,
                     ], true))
-                    ->action(function (TrainingSession $record): void {
-                        $record->update(['status' => SessionStatus::Absent]);
+                    ->action(function (TrainingSession $record, SessionSchedulingService $service): void {
+                        $service->markAbsent($record);
                         Notification::make()
                             ->title('Member Marked Absent')
                             ->body("Marked {$record->member?->name} as absent.")

@@ -3,6 +3,7 @@
 declare(strict_types=1);
 
 use App\Filament\Widgets\Trainer\TrainerStatsWidget;
+use App\Filament\Widgets\Trainer\TrainerTodaySessionsTableWidget;
 use App\Models\Member;
 use App\Models\Plan;
 use App\Models\Service;
@@ -171,5 +172,44 @@ it('renders TrainerStatsWidget without TypeError for authenticated trainer', fun
         ->assertSee('Active Clients')
         ->assertSee("Today's Sessions")
         ->assertSee('Capacity Utilization');
+});
+
+it('renders TrainerTodaySessionsTableWidget without undefined constant error for authenticated trainer', function (): void {
+    $trainer = User::factory()->create();
+    $trainer->assignRole('trainer');
+
+    $client = Member::factory()->create(['name' => 'Abebe Bikila']);
+
+    $session = TrainingSession::create([
+        'member_id' => $client->id,
+        'trainer_id' => $trainer->id,
+        'scheduled_at' => Carbon::now()->startOfDay()->addHours(10),
+        'duration_minutes' => 60,
+        'status' => 'scheduled',
+    ]);
+
+    $this->actingAs($trainer);
+
+    Livewire::test(TrainerTodaySessionsTableWidget::class)
+        ->assertSuccessful()
+        ->assertSee("Today's Coaching Schedule")
+        ->assertSee('Abebe Bikila')
+        ->callTableAction('mark_completed', $session);
+
+    expect($session->fresh()->status)->toBe(\App\Enums\SessionStatus::Completed);
+
+    $session2 = TrainingSession::create([
+        'member_id' => $client->id,
+        'trainer_id' => $trainer->id,
+        'scheduled_at' => Carbon::now()->startOfDay()->addHours(14),
+        'duration_minutes' => 60,
+        'status' => 'scheduled',
+    ]);
+
+    Livewire::test(TrainerTodaySessionsTableWidget::class)
+        ->assertSuccessful()
+        ->callTableAction('mark_absent', $session2);
+
+    expect($session2->fresh()->status)->toBe(\App\Enums\SessionStatus::MemberAbsent);
 });
 
