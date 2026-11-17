@@ -3,211 +3,225 @@
 ![Gymie](.github/assets/banner.png)
 
 ## Overview
-Laravel based web application for gym & club management. Currently being used by many fitness centers. For more information, visit - https://www.gymie.in
+
+**Gymie** is a modern, full-featured web application for gym, fitness club, and personal training management. Built with **Laravel 13**, **Filament 5**, and **Livewire 4**, it provides robust role-based access, client portals, personal training workout builders, membership lifecycles, invoicing, and real-time operational dashboards.
+
+For more information, visit [https://www.gymie.in](https://www.gymie.in).
+
+---
+
+## Key Features
+
+### 1. Multi-Role Separation & Dedicated Portals
+* **Super Admin**: Comprehensive dashboard with gym-wide financial metrics, cashflow trends, subscription health, staff management, and system configuration.
+* **Front Desk**: Front-of-house operational control covering member registration, enquiry & lead capture, subscription renewals, invoices, and payments.
+* **Personal Trainer**: Dedicated coaching hub featuring active client rosters, customized workout program authoring, today's schedule with 1-click completion/absent tracking, and capacity utilization metrics.
+* **Member Portal**: Isolated client portal allowing gym members to inspect active subscription days, view assigned coach contact details, access tailored workout routines, and track upcoming appointments.
+* **Dynamic Navigation**: Unauthorized navigation groups and resources are completely invisible to unauthorized roles (zero 403 Forbidden dead-ends).
+* **Member Account Linking**: Staff can provision or revoke member portal logins directly from the member profile with automated role assignment.
+
+### 2. Workout Programs & Personal Training Architecture
+* **Master Exercise Library**: Encyclopedia of gym movements categorized by muscle groups (Chest, Back, Legs, Core, etc.) and equipment types (Barbell, Dumbbell, Cable, Machine, Bodyweight) with video demonstration URLs and coaching cues.
+* **Custom Workout Programs**: Program authoring with custom split day labels (e.g. *Day 1: Upper Push*), target sets, reps, intensity (RPE), rest timers, and movement notes.
+* **1-on-1 Session Scheduling**: Scheduling service that enforces active subscription validation, prevents trainer double-booking, and handles cancellations.
+* **Automatic Personal Record (PR) Tracker**: Evaluates logged weights in real time against member historical bests and automatically flags new Personal Records.
+
+### 3. Membership & Financial Management
+* **Flexible Plans & Services**: Tiered gym memberships, personal training packages, and ad-hoc fitness services.
+* **Invoicing & Transaction Tracking**: Automatic invoice generation, payment receipts, partial payments, and PDF invoice downloads (`barryvdh/laravel-dompdf`).
+* **Subscription Lifecycle**: Automated background commands to monitor and flag expiring or renewed memberships.
+* **Expense Management**: Categorized gym expenditure tracking and reporting.
+
+### 4. Real-Time Operational Dashboards & Performance
+* **Smart Background Polling (30s)**: Operational widgets (*Today's Coaching Schedule*, *Expiring Memberships*, *Recent Transactions*) refresh automatically in the background without browser reloads.
+* **Database Protection**: Heavy multi-month financial charts are decoupled from polling to eliminate redundant aggregations.
+* **Client-Side Form Preloading**: Static form fields (Country, Region, City, Lead Owner, Source, Goal) are preloaded into Alpine.js memory, eliminating network latency and keystroke-level AJAX requests.
+
+### 5. Localization & Regional Customization
+* **Default Currency**: Built-in support for **ETB (Ethiopian Birr)** as the primary currency, with automatic price formatting across all invoices and forms.
+* **Regional State & City Preloading**: Preloaded Ethiopian Regional States and Chartered Cities (Addis Ababa, Dire Dawa, Oromia, Amhara, Sidama, Tigray, etc.) with sub-cities, alongside an on-the-fly custom city creator for unlisted towns.
+* **Phone Auto-Formatting**: Automatic `+251` dialing code formatting and placeholder detection.
+* **In-Memory Caching**: Permanent caching (`Cache::rememberForever`) for geographic and currency lookups.
+
+---
+
+## Role Matrix Overview
+
+| Role | Navigation & Scope | Key Dashboard Capabilities |
+| :--- | :--- | :--- |
+| **`super_admin`** | Full access to all modules, financial records, users, and system settings. | Cashflow Trends, Expense Breakdown, Top Plans, Member Metrics, Financial KPIs. |
+| **`front_desk`** | Members, Subscriptions, Invoices, Payments, Enquiries, and Follow-ups. | Expiring Soon Subscriptions, Membership Overview, Quick Member Registration. |
+| **`trainer`** | Assigned Clients, Workout Programs, Personal Training Sessions, and Exercise Library. | Today's Coaching Schedule (with 1-click status updates), Active Clients, Capacity Utilization. |
+| **`member`** | Read-only access strictly isolated to their own Subscriptions, Invoices, Workouts, and Sessions. | Member Portal Overview (Plan validity, Coach info, Program summary, Upcoming sessions). |
+
+---
 
 ## Requirements
 
--   PHP >= 8.4
--   Laravel Framework ^13.0
--   Filament Admin Panel 5.x
--   Livewire 4.x
--   nnjeim/world ^1.1
--   barryvdh/laravel-dompdf ^3.1
--   Laravel Herd _(optional for local development)_
+- **PHP**: `>= 8.4`
+- **Laravel Framework**: `^13.0`
+- **Filament Admin Panel**: `5.x`
+- **Livewire**: `4.x`
+- **MySQL**: `>= 8.0`
+- **Composer**: `^2.x`
+- **Node.js & npm**: `^20.x` or higher
 
-## Installation
+---
 
-To set up Gymie, follow these steps:
+## Installation & Setup
 
 ### 1. Clone the Repository
-
-Clone the repository to your local system:
-
 ```bash
 git clone git@github.com:lubusIN/gymie.git
-```
-
-### 2. Go to folder
-
-```bash
 cd gymie
 ```
 
-### 3. Install dependencies
-
+### 2. Install Dependencies
 ```bash
 composer install
+npm install && npm run build
 ```
 
-### 4. Prepare the environment
-
-Run the following script to prepare your environment:
-
+### 3. Prepare Environment
 ```bash
 composer run prepare-env
 ```
+This command automatically:
+* Copies `.env.example` to `.env` (if not present).
+* Generates the application key (`APP_KEY`).
+* Clears configuration cache.
+* Creates the storage symbolic link (`php artisan storage:link`).
 
-This will:
+### 4. Configure Database Credentials
+Edit `.env` with your database connection details:
+```env
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=gymie
+DB_USERNAME=root
+DB_PASSWORD=your_password
+```
 
--   Copy `.env.example` to `.env` (if missing)
--   Clear config cache
--   Generate application key
--   Create a symbolic link to the storage folder
+### 5. Initialize the Database
 
-### 5. Configure the `.env` file
+Choose one of two setup options:
 
--   Set your database credentials.
--   Update other relevant configuration values.
--   Set your application URL:
-    ```env
-    APP_URL=https://gymie.test
-    ```
-
-### 6. Database Setup
-
-You can set up the database in one of two ways, depending on your requirements:
-
-**Option 1: Blank Setup (Recommended for Production)**
-
-Run the following command:
-
+#### Option A: Blank Setup (Production)
 ```bash
 composer run setup
 ```
-
 > [!NOTE]
-> This command will prompt you to create an admin user via the terminal.
+> This runs fresh migrations, seeds reference data (Shield permissions, country/state dataset), and prompts you to create a Super Admin user via the terminal.
 
-This will:
-
--   Set up the environment (.env, app key, storage link)
--   Run a fresh migration to create database tables
--   Seed the world data (countries, states, cities)
--   Create a default Filament admin user
-
-**Option 2: Demo Setup**
-
-If you want to explore the system with all demo data preloaded, use:
-
+#### Option B: Demo Dataset Setup (Local Testing)
 ```bash
 composer run setup-demo
 ```
-
-This command will:
-
--   Reset the database
--   Seed all available demo data
--   Prepare the environment automatically
-
 > [!CAUTION]
-> This process will erase all existing data. Use it only in a local or demo environment.
+> This command resets the database and seeds realistic demo data (200+ members, subscriptions, workout programs, invoices, expenses, and role-assigned users). Use this only in development.
 
-Login credentials:
+**Default Demo Credentials:**
+```text
+Email: admin@gymie.local
+Password: password
+```
+
+---
+
+## Development Workflow
+
+### 1. Run All Services Concurrently
+```bash
+composer run dev
+```
+Starts `php artisan serve`, `php artisan queue:listen`, and `npm run dev` simultaneously via Concurrently.
+
+Or start services individually:
+
+* **Web Server:**
+  ```bash
+  php artisan serve
+  ```
+  Access the panel at: [http://127.0.0.1:8000](http://127.0.0.1:8000)
+
+* **Queue Worker (Background emails & exports):**
+  ```bash
+  php artisan queue:work
+  ```
+
+* **Task Scheduler (Subscription status updates):**
+  ```bash
+  php artisan schedule:work
+  ```
+
+---
+
+## Testing
+
+Gymie has a comprehensive test suite covering unit logic, feature tests, role-based data scoping, widget visibility, and API endpoints:
 
 ```bash
-Email: test@example.com
-Password: test
+# Run all tests via Pest
+composer test
+
+# Or run Pest directly
+php vendor/pestphp/pest/bin/pest
 ```
 
-## Troubleshooting
+---
 
-**Memory Errors**
+## API Documentation (JSON v1)
 
-Ensure PHP has enough memory allocated. Edit your php.ini:
+Gymie includes a versioned RESTful API under `/api/v1` authenticated using Laravel Sanctum bearer tokens.
 
-```ini
-memory_limit = 512M
-```
-
-**Seeder Performance**
-
-Seeders (like WorldSeeder) can add significant data and slow down performance. For production, avoid full seeding and run only necessary seeders:
-
-```bash
-php artisan db:seed --class=WorldSeeder
-```
-
-## Development
-
-### 1. Start the development server:
-
-```bash
-php artisan serve
-```
-
-Or with Laravel Herd:
-
-```bash
-herd
-```
-
-### 2. Start the queue worker
-
-To process background jobs:
-
-```bash
-php artisan queue:work
-```
-
-### 3. Start the Laravel scheduler
-
-```bash
-php artisan schedule:work
-```
-
-> [!NOTE]
-> The scheduler must be running continuously to trigger time-based tasks (e.g., status updates).
->
-> If those tasks dispatch queued jobs (like import/export or notifications), then the queue worker must also be running to process them.
-
-## API (JSON, v1)
-
-Gymie ships with a versioned JSON API under `routes/api.php` for integrations.
-
-### Authentication (Sanctum Bearer Tokens)
-
--   Login: `POST /api/v1/auth/login`
--   Current user: `GET /api/v1/me`
--   Logout: `POST /api/v1/auth/logout`
+### Authentication
+* **Login**: `POST /api/v1/auth/login`
+* **Current User**: `GET /api/v1/me`
+* **Logout**: `POST /api/v1/auth/logout`
 
 Example:
-
 ```bash
-curl -sX POST "$APP_URL/api/v1/auth/login" \
+# 1. Obtain Bearer Token
+curl -sX POST "http://127.0.0.1:8000/api/v1/auth/login" \
   -H "Accept: application/json" \
   -H "Content-Type: application/json" \
-  -d '{"email":"user@example.com","password":"password"}'
-```
+  -d '{"email":"admin@gymie.local","password":"password"}'
 
-Use the returned token:
-
-```bash
-curl -s "$APP_URL/api/v1/me" \
+# 2. Authenticated Request
+curl -s "http://127.0.0.1:8000/api/v1/me" \
   -H "Accept: application/json" \
-  -H "Authorization: Bearer <token>"
+  -H "Authorization: Bearer <TOKEN>"
 ```
 
-Notes:
+### Rich Filtering & Parameters
+All API index endpoints support allowlisted query parameters:
+* **Search**: `?q=search_term`
+* **Pagination**: `?page=1&per_page=15`
+* **Sorting**: `?sort=-created_at,name` (prefix `-` for descending)
+* **Relations**: `?include=service,subscription.member`
+* **Filtering**: `?filter[field]=value` or date ranges `?filter[date]=2026-01-01..2026-12-31`
+* **Soft Deletes**: `?trashed=with` or `?trashed=only`
 
--   The API is bearer-token only. Being logged into Filament in the browser does not authenticate API requests.
--   `/api/v1/me` always includes roles and permissions. Other user endpoints include permissions only when requested:
-    -   `GET /api/v1/users?include=permissions` or `GET /api/v1/users?include_permissions=1`
+---
 
-### Index Query Parameters (Rich Filtering)
+## Troubleshooting & Optimizations
 
-All index endpoints support allowlisted query params:
+* **Memory Limits**: Ensure PHP has adequate memory allocated in your `php.ini` (`memory_limit = 512M`).
+* **Cache Management**:
+  ```bash
+  # Clear all application, route, and view caches
+  php artisan optimize:clear
 
--   Search: `?q=...`
--   Pagination: `?page=...&per_page=...`
--   Sort (multi-sort): `?sort=-created_at,name`
--   Soft deletes (where supported): `?trashed=with|only`
--   Includes (allowlisted): `?include=service,subscription.member`
--   Filters (allowlisted): `?filter[field]=value`
-    -   Range syntax for date/datetime: `?filter[date]=2026-03-01..2026-03-31`
+  # Pre-cache Filament components and Blade icons for production speed
+  php artisan filament:optimize
+  ```
+* **Permission Cache Reset**:
+  ```bash
+  php artisan permission:cache-reset
+  ```
 
-Allowlists (searchable/sortable/includes/filters) are defined per resource in:
-
--   `app/Services/Api/Schemas/*Schema.php` via `::queryRules()`
+---
 
 ## Meet Your Artisans
 
@@ -217,6 +231,8 @@ Allowlists (searchable/sortable/includes/filters) are defined per resource in:
 <img src="https://raw.githubusercontent.com/lubusIN/.github/refs/heads/main/profile/banner.png" />
 </a>
 
+---
+
 ## License
 
-Gymie is an open-sourced saas licensed under the [MIT license](LICENSE)
+Gymie is open-sourced software licensed under the [MIT license](LICENSE).
